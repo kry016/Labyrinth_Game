@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Android;
 
 public class GyroscopeSystem : MonoBehaviour
 {
@@ -12,22 +13,16 @@ public class GyroscopeSystem : MonoBehaviour
     private Quaternion gyroInitialRotation;
     private Quaternion offsetRotation;
     public bool GyroEnabled { get; set; }
-    private bool gyroInitialized = false;
     public bool debug;
 
-    private void InitGyro()
+    private void Start()
     {
-        if (!gyroInitialized)
-        {
-            Input.gyro.enabled = true;
-            Input.gyro.updateInterval = 0.0167f;
-        }
-        gyroInitialized = true;
+        StartCoroutine(ControllGyro());
+        Input.gyro.enabled = true;
+        Input.gyro.updateInterval = 0.0167f;
     }
-
-    private IEnumerator Start()
+    private IEnumerator ControllGyro()
     {
-        
         yield return new WaitForSeconds(waitGyroInitializationDuration);
     
         if (SystemInfo.supportsGyroscope)
@@ -37,27 +32,28 @@ public class GyroscopeSystem : MonoBehaviour
 
             gyroRotation.position = transform.position;
             gyroRotation.rotation = transform.rotation;
-            InitGyro();
             GyroEnabled = true;
         }
         else GyroEnabled = false;
+        
     }
 
     private void Update()
     {
+
         if (Time.timeScale == 1 && GyroEnabled)
         {
+
             ApplyGyroRotation();
 
             transform.rotation = Quaternion.Slerp(transform.rotation, initialRotation * gyroRotation.rotation, smoothing);
-            transform.rotation = new Quaternion(Mathf.Clamp(transform.rotation.x, -0.3f, 0.3f), 0, Mathf.Clamp(transform.rotation.z, -0.3f, 0.3f), 1);
+            transform.rotation = new Quaternion(Mathf.Clamp(transform.rotation.x, -0.3f, 0.3f), 0.0f, Mathf.Clamp(transform.rotation.z, -0.3f, 0.3f), 1.0f);
            
         }
     }
 
     private void ApplyGyroRotation()
     {
-
         offsetRotation = Quaternion.Inverse(gyroInitialRotation) * GyroToUnity(Input.gyro.attitude);
 
         float currentSpeed = Time.deltaTime * speed;
@@ -89,6 +85,7 @@ public class GyroscopeSystem : MonoBehaviour
             style.fontSize = Mathf.RoundToInt(Mathf.Min(Screen.width, Screen.height) / 20f);
             style.normal.textColor = Color.white;
             GUILayout.BeginVertical("box");
+            GUILayout.Label("gyroenable: " + Input.gyro.enabled.ToString(), style);
             GUILayout.Label("Attitude: " + Input.gyro.attitude.ToString(), style);
             GUILayout.Label("Rotation: " + transform.rotation.ToString(), style);
             GUILayout.Label("Offset Rotation: " + offsetRotation.ToString(), style);
