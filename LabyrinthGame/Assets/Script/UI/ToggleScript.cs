@@ -8,6 +8,18 @@ public class ToggleScript : MonoBehaviour
     [SerializeField] private ModeInput modeInput;
     [SerializeField] private bool debug;
 
+    private void Awake()
+    {
+        switch (modeInput)
+        {
+            case ModeInput.Gyroscope:
+                GetComponent<Toggle>().isOn = InputManager.inputGyro;
+                break;
+            case ModeInput.Touch:
+                GetComponent<Toggle>().isOn = InputManager.inputTouch;
+                break;
+        }
+    }
     public void ToggleBar()
     {
         GestorInput();
@@ -18,6 +30,11 @@ public class ToggleScript : MonoBehaviour
         switch (modeInput)
         {
             case ModeInput.Gyroscope:
+                if (GyroscopeSystem.gyroscopeSystem)
+                {
+
+                    GyroscopeSystem.gyroscopeSystem.ActiveGyro();
+                }
                 Input(true, false);
                 break;
             case ModeInput.Touch:

@@ -5,15 +5,17 @@ using UnityEngine;
 public class JoyStick : MonoBehaviour
 {
     [SerializeField] private float rotatespeed = 10f;
+    [HideInInspector] public Quaternion currentRotation;
     private Vector2 StartPosition;
     private Vector2 directionPosition;
     private Quaternion rotationObject;
-
+    private float timeCurve;
 
     private void Update()
     {
-        if (Input.touchCount > 0 && InputManager.inputTouch == true)
+        if (Input.touchCount > 0 && InputManager.inputTouch == true && InputManager.Paused == false)
         {
+            timeCurve = 0;
             Touch touch = Input.GetTouch(0);
 
             switch (touch.phase)
@@ -31,5 +33,15 @@ public class JoyStick : MonoBehaviour
                     break;
             }
         }
+        else if (InputManager.inputTouch == true && InputManager.Paused == true && timeCurve <= 1)
+        {
+            Paused();
+        }
+    }
+
+    public void Paused()
+    {
+        timeCurve += Time.deltaTime / 2f;
+        transform.rotation = new Quaternion(Mathf.LerpAngle(currentRotation.x, 0, timeCurve), currentRotation.y, Mathf.Lerp(currentRotation.z, 0, timeCurve), currentRotation.w);
     }
 }

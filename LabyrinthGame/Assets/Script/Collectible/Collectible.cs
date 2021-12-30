@@ -8,6 +8,7 @@ public class Collectible : MonoBehaviour
 {
     [SerializeField] private float rotationSpeed = 10;
     [SerializeField] private UnityEvent Collision;
+
     // Update is called once per frame
     void Update()
     {
@@ -25,11 +26,13 @@ public class Collectible : MonoBehaviour
 
     public void CollectibleStar()
     {
+        GameManager.AddStarPoint();
         Destroy(gameObject);
     }
 
-    public void PresentWin()
+    public void PresentWin(GameObject boardGame)
     {
-
+        GameManager.VictoryGame(boardGame);
+        Destroy(gameObject);        
     }
 }

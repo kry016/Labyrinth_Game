@@ -9,13 +9,14 @@ public class ButtonScript : MonoBehaviour
     public void PlayGame()
     {
         Load();
+        InputManager.Paused = false;
     }
 
 
 
     public void OptionGame()
     {
-        UIManagerScript.uiManager.UISelect(false, true);
+        UIManagerScript.uiManager.UISelect(false, true, false, false, false, false);
     }
 
     public void QuitGame()
@@ -25,10 +26,25 @@ public class ButtonScript : MonoBehaviour
 
     public void MenuGame()
     {
-        UIManagerScript.uiManager.UISelect(true, false);
+        UIManagerScript.uiManager.UISelect(true, false, false, false, false, false);
     }
 
-    
+    public void OpenImpostation(GameObject Input)
+    {        
+        InputManager.Paused = true;
+        InputManager.Pause(Input);
+        UIManagerScript.uiManager.UISelect(false, false, false, true, false, false);
+
+    }
+
+
+    public void CloseImpostation(Animator animation)
+    {
+
+        animation.SetBool("Revers", true);
+
+    }
+
     private void Load()
     {
         StartCoroutine(LoadScene());

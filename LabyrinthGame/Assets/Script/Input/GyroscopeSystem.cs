@@ -5,25 +5,37 @@ using UnityEngine.Android;
 
 public class GyroscopeSystem : MonoBehaviour
 {
+    public static GyroscopeSystem gyroscopeSystem;
     [SerializeField] private float smoothing = 0.1f;
     [SerializeField] private float speed = 60.0f;
     [SerializeField] private float waitGyroInitializationDuration = 0.5f;
     [SerializeField] private Transform gyroRotation;
-    private Quaternion initialRotation;
+    [HideInInspector]public Quaternion currentRotation;
+    private Quaternion initialRotation;   
     private Quaternion gyroInitialRotation;
     private Quaternion offsetRotation;
     public bool GyroEnabled { get; set; }
     public bool debug;
+    private float timeCurve = 0.0f;
 
+    private void Awake()
+    {
+        if (!gyroscopeSystem) gyroscopeSystem = this;
+    }
     private void Start()
     {
         if (InputManager.inputGyro == true)
         {
-            StartCoroutine(ControllGyro());
-            Input.gyro.enabled = true;
-            Input.gyro.updateInterval = 0.0167f;
+            ActiveGyro();
         }
         
+    }
+
+    public void ActiveGyro()
+    {
+        StartCoroutine(ControllGyro());
+        Input.gyro.enabled = true;
+        Input.gyro.updateInterval = 0.0167f;
     }
     private IEnumerator ControllGyro()
     {
@@ -44,11 +56,12 @@ public class GyroscopeSystem : MonoBehaviour
 
     private void Update()
     {
-        if (InputManager.inputGyro == true)
+        
+        if (InputManager.inputGyro == true && InputManager.Paused == false)
         {
             if (Time.timeScale == 1 && GyroEnabled)
             {
-
+                timeCurve = 0;
                 ApplyGyroRotation();
 
                 transform.rotation = Quaternion.Slerp(transform.rotation, initialRotation * gyroRotation.rotation, smoothing);
@@ -56,9 +69,18 @@ public class GyroscopeSystem : MonoBehaviour
 
             }
         }
+        else if (InputManager.inputGyro == true && InputManager.Paused == true && timeCurve <= 1)
+        {
+            Paused();
+        }
+        
         
     }
-
+    public void Paused()
+    {
+        timeCurve += Time.deltaTime/2f;
+        transform.rotation = new Quaternion( Mathf.LerpAngle(currentRotation.x, 0, timeCurve), currentRotation.y, Mathf.Lerp(currentRotation.z, 0, timeCurve), currentRotation.w);
+    }
     private void ApplyGyroRotation()
     {
         offsetRotation = Quaternion.Inverse(gyroInitialRotation) * GyroToUnity(Input.gyro.attitude);
@@ -94,7 +116,7 @@ public class GyroscopeSystem : MonoBehaviour
             GUILayout.BeginVertical("box");
             GUILayout.Label("gyroenable: " + Input.gyro.enabled.ToString(), style);
             GUILayout.Label("Attitude: " + Input.gyro.attitude.ToString(), style);
-            GUILayout.Label("Rotation: " + transform.rotation.ToString(), style);
+            GUILayout.Label("timeCurve: " + timeCurve.ToString(), style);
             GUILayout.Label("Offset Rotation: " + offsetRotation.ToString(), style);
             GUILayout.Label("Raw Rotation: " + gyroRotation.rotation.ToString(), style);
             GUILayout.EndVertical();
